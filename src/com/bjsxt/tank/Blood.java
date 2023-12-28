@@ -1,7 +1,7 @@
 package com.bjsxt.tank;
 import java.awt.*;
 
-public class Blood {
+public class Blood {			//实验
 	int x, y, w, h;			//血块的大小和位置
 	TankClient tc;			//生成一个tankclient对象用来与游戏中的其它元素及性能交互
 

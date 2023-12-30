@@ -34,6 +34,7 @@ public class TankClient extends Frame {
 	private static Toolkit tk = Toolkit.getDefaultToolkit();
 	static Image backGround=null;
 	Blood b = new Blood();
+	//搞个blood却没有使用，所以整个blood类都是不必要看的
 
 	public void paint(Graphics g) {
 		/*
@@ -44,17 +45,18 @@ public class TankClient extends Frame {
 		g.drawString("explodes count:" + explodes.size(), 10, 70);
 		g.drawString("tanks    count:" + tanks.size(), 10, 90);
 		g.drawString("tanks     life:" + myTank.getLife(), 10, 110);
+		//绘制计数板，这个动作是需要反复刷新进行的
 
 		if(tanks.size() <= 0) {
 			for(int i=0; i<Integer.parseInt(PropertyMgr.getProperty("reProduceTankCount")); i++) {
 				tanks.add(new Tank(50 , 50, false, Direction.L, this));
 			}
-		}
-
+		}			//控制坦克再次生成的部分，坦克的数量过少则会触发add添加新的坦克进入
+					//这个动作同样需要刷新验证数量上是否符合要求
 		for(int i=0; i<missiles.size(); i++) {
 			Missile m = missiles.get(i);
-			m.hitTanks(tanks);
-			m.hitTank(myTank);
+			m.hitTanks(tanks);			//检测子弹是否击中敌方坦克
+			m.hitTank(myTank);			//检测己方坦克是否被击中
 			m.hitWall(w1);
 			m.hitWall(w2);
 			m.draw(g);
@@ -65,13 +67,13 @@ public class TankClient extends Frame {
 		for(int i=0; i<explodes.size(); i++) {
 			Explode e = explodes.get(i);
 			e.draw(g);
-		}
+		}					//每一次刷新界面都会对每一个爆炸
 
 		for(int i=0; i<tanks.size(); i++) {
 			Tank t = tanks.get(i);
-			//t.collidesWithWall(w1);
-			//t.collidesWithWall(w2);
-			//t.collidesWithTanks(tanks);
+			t.collidesWithWall(w1);	//
+			t.collidesWithWall(w2);	//
+			t.collidesWithTanks(tanks);//
 			t.draw(g);
 		}
 
@@ -83,10 +85,15 @@ public class TankClient extends Frame {
 	}
 
 	public void update(Graphics g) {
+		//被线程循环调用
+		//update的参数是由系统自动创建的
+
 		if(offScreenImage == null) {
 			offScreenImage = this.createImage(GAME_WIDTH, GAME_HEIGHT);
 		}
+		//屏外画面，创造影像
 		Graphics gOffScreen = offScreenImage.getGraphics();
+		//创建graphic型取自屏外影像
 		Color c = gOffScreen.getColor();
 		gOffScreen.setColor(Color.BLACK);
 
@@ -94,9 +101,10 @@ public class TankClient extends Frame {
 
 
 		gOffScreen.drawImage(backGround, 0, 0, null);
-
+		//在屏外画布上添加background组件
 		gOffScreen.setColor(c);
 		paint(gOffScreen);
+		//在屏外画布上绘画其他组件
 		g.drawImage(offScreenImage, 0, 0, null);
 	}
 
@@ -127,8 +135,6 @@ public class TankClient extends Frame {
 
 		this.setUndecorated(true);
 
-
-
 		this.setBackground(Color.GREEN);
 
 		this.addKeyListener(new KeyMonitor());
@@ -139,22 +145,24 @@ public class TankClient extends Frame {
 	}
 
 	public static void main(String[] args) {
+
 		TankClient tc = new TankClient();
-		tc.lauchFrame();
+		tc.lauchFrame();				//游戏的入口
 	}
 
 	private class PaintThread implements Runnable {
-
+						//线程绘制，实现了runnable接口，可以作为线程的任务执行
 		public void run() {
 			while(true) {
 				repaint();
+				//会向paint和update发送请求运行这两个方法。
 				try {
 					Thread.sleep(50);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 			}
-		}
+		}				//runnable接口所要实现的方法
 	}
 
 	private class KeyMonitor extends KeyAdapter {

@@ -30,8 +30,10 @@ public class Tank {
 	private int step = r.nextInt(12) + 3;
 
 	private static Toolkit tk = Toolkit.getDefaultToolkit();
+	//实例化toolkit，借助底层平台的实例完成
 	private static Image[] tankImages = null;
 	private static Map<String, Image> imgs = new HashMap<String, Image>();
+	//键盘映射
 	static {
 		tankImages = new Image[] {
 				tk.getImage(Tank.class.getClassLoader().getResource("images/tankL.gif")),

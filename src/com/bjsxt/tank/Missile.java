@@ -60,8 +60,9 @@ public class Missile {
 	public void draw(Graphics g) {
 		if(!live) {
 			tc.missiles.remove(this);
+			//tc是各类的一个属性，但tc本身却存在很多这些类的方法
 			return;
-		}
+		}					//不移动则移除
 		
 		switch(dir) {
 		case L:
@@ -131,7 +132,7 @@ public class Missile {
 		
 		if(x < 0 || y < 0 || x > TankClient.GAME_WIDTH || y > TankClient.GAME_HEIGHT) {
 			live = false;
-		}		
+		}					//如果出界则不再继续存在
 	}
 
 	public boolean isLive() {
@@ -141,7 +142,7 @@ public class Missile {
 	public Rectangle getRect() {
 		return new Rectangle(x, y, WIDTH, HEIGHT);
 	}
-	
+	//外部得到private属性的public方法
 	public boolean hitTank(Tank t) {
 		if(this.live && this.getRect().intersects(t.getRect()) && t.isLive() && this.good != t.isGood()) {
 			if(t.isGood()) {
@@ -153,6 +154,7 @@ public class Missile {
 			
 			this.live = false;
 			Explode e = new Explode(x, y, tc);
+			//命中时创造explode对象并将其添加进tc内的数组当中
 			tc.explodes.add(e);
 			return true;
 		}

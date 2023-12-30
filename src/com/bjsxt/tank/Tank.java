@@ -3,19 +3,19 @@ package com.bjsxt.tank;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
-
 public class Tank {
-	public static final int XSPEED = 5;
-	public static final int YSPEED = 5;
+	public static final int XSPEED = 1;
+	public static final int YSPEED = 1;
 
 	private boolean live = true;
-	private BloodBar bb = new BloodBar();
+	private BloodBar bb = new BloodBar ();
 
 	private int life = 100;
 
 	TankClient tc;
 
 	private boolean good;
+	//表示是否是玩家操作的玩家坦克
 
 	private int x, y;
 	private int oldX, oldY;
@@ -44,6 +44,7 @@ public class Tank {
 				tk.getImage(Tank.class.getClassLoader().getResource("images/tankRD.gif")),
 				tk.getImage(Tank.class.getClassLoader().getResource("images/tankD.gif")),
 				tk.getImage(Tank.class.getClassLoader().getResource("images/tankLD.gif"))
+
 		};
 
 		imgs.put("L", tankImages[0]);
@@ -80,7 +81,7 @@ public class Tank {
 				tc.tanks.remove(this);
 			}
 			return;
-		}
+		}			//如果！live且！good则从tanks数组中移除
 
 		if(good) bb.draw(g);
 
@@ -110,11 +111,9 @@ public class Tank {
 				g.drawImage(imgs.get("LD"), x, y, null);
 				break;
 		}
-
-		move();
 	}
 
-	void move() {
+	public void move() {
 
 		this.oldX = x;
 		this.oldY = y;
@@ -161,7 +160,7 @@ public class Tank {
 		if(x + Tank.WIDTH > TankClient.GAME_WIDTH) x = TankClient.GAME_WIDTH - Tank.WIDTH;
 		if(y + Tank.HEIGHT > TankClient.GAME_HEIGHT) y = TankClient.GAME_HEIGHT - Tank.HEIGHT;
 
-		if(!good  ) {
+		if(!good) {
 			Direction[] dirs = Direction.values();
 			if(step == 0) {
 				step = r.nextInt(12) + 3;

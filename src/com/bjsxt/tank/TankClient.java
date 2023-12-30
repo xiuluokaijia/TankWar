@@ -22,7 +22,7 @@ public class TankClient extends Frame {
 	//public static final int GAME_HEIGHT = 900;
 	public static final int GAME_WIDTH = 3840;
 	public static final int GAME_HEIGHT = 2160;
-
+	public boolean isPaused = false;
 	Tank myTank = new Tank(50, 50, true, Direction.STOP, this);
 
 	Wall w1 = new Wall(100, 200, 20, 150, this), w2 = new Wall(300, 100, 300, 20, this);
@@ -35,6 +35,25 @@ public class TankClient extends Frame {
 	static Image backGround=null;
 	Blood b = new Blood();
 	//搞个blood却没有使用，所以整个blood类都是不必要看的
+	public class Move implements Runnable{ // 刷新各渲染对象的位置，单独线程
+		@Override
+		public void run() {
+			while(!isPaused){
+				tanks.forEach((tank)->{
+					tank.move();
+				});
+				missiles.forEach((missile -> {
+					missile.move();
+				}));
+				myTank.move();
+				try {
+					Thread.sleep(10);
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		}
+	}
 
 	public void paint(Graphics g) {
 		/*
@@ -142,6 +161,7 @@ public class TankClient extends Frame {
 		setVisible(true);
 
 		new Thread(new PaintThread()).start();
+		new Thread(new Move()).start();
 	}
 
 	public static void main(String[] args) {
@@ -157,7 +177,7 @@ public class TankClient extends Frame {
 				repaint();
 				//会向paint和update发送请求运行这两个方法。
 				try {
-					Thread.sleep(50);
+					Thread.sleep(25);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}

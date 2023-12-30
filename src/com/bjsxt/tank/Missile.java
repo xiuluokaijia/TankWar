@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 public class Missile {
-	public static final int XSPEED = 10;
-	public static final int YSPEED = 10;
+	public static final int XSPEED = 2;
+	public static final int YSPEED = 2;
 	
 	public static final int WIDTH = 10;
 	public static final int HEIGHT = 10;
@@ -90,11 +90,9 @@ public class Missile {
 			g.drawImage(imgs.get("LD"), x, y, null);
 			break;
 		}
-		
-		move();
 	}
 
-	private void move() {
+	public void move() {
 		
 		
 		switch(dir) {

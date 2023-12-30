@@ -25,6 +25,7 @@ public class Explode {
 		tk.getImage(Explode.class.getClassLoader().getResource("images/8.gif")),
 		tk.getImage(Explode.class.getClassLoader().getResource("images/9.gif")),
 		tk.getImage(Explode.class.getClassLoader().getResource("images/10.gif"))
+
 	};					//获取爆炸的图片
 	
 	int step = 0;		//表示爆炸图片应有的步数

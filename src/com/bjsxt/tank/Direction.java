@@ -1,5 +1,5 @@
 package com.bjsxt.tank;
 
 public enum Direction {
-	L, LU, U, RU, R, RD, D, LD, STOP
-}			//枚举类型
+    L, R, D, U, STOP,GO
+}            //枚举类型

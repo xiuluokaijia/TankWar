@@ -1,179 +1,110 @@
 package com.bjsxt.tank;
+
 import java.awt.*;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class Missile {
-	public static final int XSPEED = 10;
-	public static final int YSPEED = 10;
-	
-	public static final int WIDTH = 10;
-	public static final int HEIGHT = 10;
-	
-	int x, y;
-	Direction dir;
-	
-	private boolean good;
-	private boolean live = true;
-	
-	private TankClient tc;
-	
-	private static Toolkit tk = Toolkit.getDefaultToolkit();
-	private static Image[] missileImages = null;
-	private static Map<String, Image> imgs = new HashMap<String, Image>();
-	static {
-		missileImages = new Image[] {
-				tk.getImage(Missile.class.getClassLoader().getResource("images/missileL.gif")),
-				tk.getImage(Missile.class.getClassLoader().getResource("images/missileLU.gif")),
-				tk.getImage(Missile.class.getClassLoader().getResource("images/MissileU.gif")),
-				tk.getImage(Missile.class.getClassLoader().getResource("images/missileRU.gif")),
-				tk.getImage(Missile.class.getClassLoader().getResource("images/missileR.gif")),
-				tk.getImage(Missile.class.getClassLoader().getResource("images/missileRD.gif")),
-				tk.getImage(Missile.class.getClassLoader().getResource("images/missileD.gif")),
-				tk.getImage(Missile.class.getClassLoader().getResource("images/missileLD.gif"))
-		};
-		
-		imgs.put("L", missileImages[0]);
-		imgs.put("LU", missileImages[1]);
-		imgs.put("U", missileImages[2]);
-		imgs.put("RU", missileImages[3]);
-		imgs.put("R", missileImages[4]);
-		imgs.put("RD", missileImages[5]);
-		imgs.put("D", missileImages[6]);
-		imgs.put("LD", missileImages[7]);
-		
-	}
-	
-	public Missile(int x, int y, Direction dir) {
-		this.x = x;
-		this.y = y;
-		this.dir = dir;
-	}
-	
-	public Missile(int x, int y, boolean good, Direction dir, TankClient tc) {
-		this(x, y, dir);
-		this.good = good;
-		this.tc = tc;
-	}
-	
-	public void draw(Graphics g) {
-		if(!live) {
-			tc.missiles.remove(this);
-			return;
-		}
-		
-		switch(dir) {
-		case L:
-			g.drawImage(imgs.get("L"), x, y, null);
-			break;
-		case LU:
-			g.drawImage(imgs.get("LU"), x, y, null);
-			break;
-		case U:
-			g.drawImage(imgs.get("U"), x, y, null);
-			break;
-		case RU:
-			g.drawImage(imgs.get("RU"), x, y, null);
-			break;
-		case R:
-			g.drawImage(imgs.get("R"), x, y, null);
-			break;
-		case RD:
-			g.drawImage(imgs.get("RD"), x, y, null);
-			break;
-		case D:
-			g.drawImage(imgs.get("D"), x, y, null);
-			break;
-		case LD:
-			g.drawImage(imgs.get("LD"), x, y, null);
-			break;
-		}
-		
-		move();
-	}
+    public static final int SPEED = 2;
+    public static final int WIDTH = 10;
+    public static final int HEIGHT = 10;
+    private final int angle;
+    double x, y;
 
-	private void move() {
-		
-		
-		switch(dir) {
-		case L:
-			x -= XSPEED;
-			break;
-		case LU:
-			x -= XSPEED;
-			y -= YSPEED;
-			break;
-		case U:
-			y -= YSPEED;
-			break;
-		case RU:
-			x += XSPEED;
-			y -= YSPEED;
-			break;
-		case R:
-			x += XSPEED;
-			break;
-		case RD:
-			x += XSPEED;
-			y += YSPEED;
-			break;
-		case D:
-			y += YSPEED;
-			break;
-		case LD:
-			x -= XSPEED;
-			y += YSPEED;
-			break;
-		case STOP:
-			break;
-		}
-		
-		if(x < 0 || y < 0 || x > TankClient.GAME_WIDTH || y > TankClient.GAME_HEIGHT) {
-			live = false;
-		}		
-	}
+    private boolean isPlayer;
+    private boolean live = true;
 
-	public boolean isLive() {
-		return live;
-	}
-	
-	public Rectangle getRect() {
-		return new Rectangle(x, y, WIDTH, HEIGHT);
-	}
-	
-	public boolean hitTank(Tank t) {
-		if(this.live && this.getRect().intersects(t.getRect()) && t.isLive() && this.good != t.isGood()) {
-			if(t.isGood()) {
-				t.setLife(t.getLife()-20);
-				if(t.getLife() <= 0) t.setLive(false);
-			} else {
-				t.setLive(false);
-			}
-			
-			this.live = false;
-			Explode e = new Explode(x, y, tc);
-			tc.explodes.add(e);
-			return true;
-		}
-		return false;
-	}
-	
-	public boolean hitTanks(List<Tank> tanks) {
-		for(int i=0; i<tanks.size(); i++) {
-			if(hitTank(tanks.get(i))) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	public boolean hitWall(Wall w) {
-		if(this.live && this.getRect().intersects(w.getRect())) {
-			this.live = false;
-			return true;
-		}
-		return false;
-	}
-	
+    private TankClient tc;
+
+    private static final Toolkit tk = Toolkit.getDefaultToolkit();
+    private static final Image missileImage;
+
+    static {
+        missileImage =
+                tk.getImage(Missile.class.getClassLoader()
+                                         .getResource("images/MissileD.png"));
+        Tools.waitForImageLoad(missileImage);
+    }
+
+    public Missile(int x, int y, int angle) {
+        this.x = x;
+        this.y = y;
+        this.angle = angle;
+    }
+
+    public Missile(int x, int y, int angle, boolean isPlayer, TankClient tc) {
+        this(x, y, angle);
+        this.isPlayer = isPlayer;
+        this.tc = tc;
+    }
+
+    public Image getMissileImage() {
+        return Tools.rotateImg(missileImage, this.angle+90);
+    }
+
+    public void draw(Graphics g) {
+        if (!live) {
+            tc.missiles.remove(this);
+            //tc是各类的一个属性，但tc本身却存在很多这些类的方法
+            return;
+        }                    //不移动则移除
+        g.drawImage(this.getMissileImage(), (int) x, (int) y, null);
+    }
+
+    public void move() {
+        if (live) {
+            double radians = Math.toRadians(this.angle); // 将角度转换为弧度
+            x += SPEED * Math.cos(radians);
+            y += SPEED * Math.sin(radians);
+        }
+            if (x < 0 || y < 0 || x > TankClient.GAME_WIDTH || y > TankClient.GAME_HEIGHT) {
+                live = false;
+            }                    //如果出界则不再继续存在}
+        }
+
+    public boolean isLive() {
+        return live;
+    }
+
+    public Rectangle getRect() {
+        return new Rectangle((int) x, (int) y, WIDTH, HEIGHT);
+    }
+
+    //外部得到private属性的public方法
+    public boolean hitTank(Tank t) {
+        if (this.live && this.getRect()
+                             .intersects(t.getRect()) && t.isLive() && this.isPlayer != t.isPlayer()) {
+            if (t.isPlayer()) {
+                t.setLife(t.getLife() - 20);
+                if (t.getLife() <= 0) t.setLive(false);
+            } else {
+                t.setLive(false);
+            }
+
+            this.live = false;
+            Explode e = new Explode((int) x, (int) y, tc);
+            //命中时创造explode对象并将其添加进tc内的数组当中
+            tc.explodes.add(e);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean hitTanks(List<Tank> tanks) {
+        for (int i = 0; i < tanks.size(); i++) {
+            if (hitTank(tanks.get(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean hitWall(Wall w) {
+        if (this.live && this.getRect()
+                             .intersects(w.getRect())) {
+            this.live = false;
+            return true;
+        }
+        return false;
+    }
+
 }

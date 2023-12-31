@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="imglib-all-0.2.10">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/imglib-all-0.2.10.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

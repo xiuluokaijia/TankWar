@@ -8,7 +8,7 @@ public class Missile {
     public static final int WIDTH = 10;
     public static final int HEIGHT = 10;
     private final int angle;
-    double x, y;
+    float x, y;
 
     private boolean isPlayer;
     private boolean live = true;
@@ -53,8 +53,8 @@ public class Missile {
     public void move() {
         if (live) {
             double radians = Math.toRadians(this.angle); // 将角度转换为弧度
-            x += SPEED * Math.cos(radians);
-            y += SPEED * Math.sin(radians);
+            x += (float) (SPEED * Math.cos(radians));
+            y += (float) (SPEED * Math.sin(radians));
         }
             if (x < 0 || y < 0 || x > TankClient.GAME_WIDTH || y > TankClient.GAME_HEIGHT) {
                 live = false;

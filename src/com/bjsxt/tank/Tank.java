@@ -82,20 +82,18 @@ public class Tank {
         this.oldY = y;
         if (this.player) {
             Tools.rotateAction(this, dir); // 逐渐旋转至指定角度
-            if (this.dir != Direction.STOP) {
-                this.ptDir = this.dir;
-            }
         } else {
             // 处理ai索敌以及巡逻逻辑
-            AIActions act = this.ai.getAction();
             Rectangle playerPos = tc.myTank.getRect();
-            int playerX = playerPos.x+WIDTH/2,playerY  = playerPos.y + HEIGHT/2;
+            int playerX = playerPos.x + playerPos.width / 2-10, playerY = playerPos.y + playerPos.height / 2-10;
             float distance = Tools.getDistance(playerX, playerY, (int) this.x, (int) this.y);
             if (distance <= TankClient.ENEMY_DETECTION_RANGE) {
                 this.ai.changeActions(AIActions.AIMING);
             } else {
-                this.ai.changeActions(AIActions.HEADING);
+                if (this.ai.getAction() == AIActions.AIMING)
+                    this.ai.changeActions(AIActions.HEADING);
             }
+            AIActions act = this.ai.getAction();
             switch (act) {
                 case STAY -> {
                     this.dir = Direction.STOP;
@@ -108,9 +106,13 @@ public class Tank {
                     this.angle = Tools.rotateTo(this.angle, ai.getRotationAngle(), RSPEED);// 逐渐旋转至指定角度
                 }
                 case AIMING -> {
-                    this.angle = Tools.rotateTo(this.angle, Tools.calcAngle(playerX, playerY, this.x, this.y),RSPEED);
+                    this.angle = Tools.rotateTo(this.angle, Tools.calcAngle(playerX, playerY, this.x, this.y), RSPEED);
+                    this.dir = Direction.STOP;
                 }
             }
+        }
+        if (this.dir != Direction.STOP) {
+            this.ptDir = this.dir;
         }
         // 处理位移：
         if (this.dir != Direction.STOP) {
@@ -198,7 +200,7 @@ public class Tank {
         if (!live) return null;
         int x = (int) (this.x + Tank.WIDTH / 2 - Missile.WIDTH / 2);
         int y = (int) (this.y + Tank.HEIGHT / 2 - Missile.HEIGHT / 2);
-        Missile m = new Missile(x, y,this.angle, player, this.tc);
+        Missile m = new Missile(x + 10, y + 7, this.angle - 90, player, this.tc);
         tc.missiles.add(m);
         return m;
     }
@@ -207,7 +209,7 @@ public class Tank {
         if (!live) return null;
         int x = (int) (this.x + Tank.WIDTH / 2 - Missile.WIDTH / 2);
         int y = (int) (this.y + Tank.HEIGHT / 2 - Missile.HEIGHT / 2);
-        Missile m = new Missile(x, y,angle, player, this.tc);
+        Missile m = new Missile(x + 10, y + 7, angle - 90, player, this.tc);
         tc.missiles.add(m);
         return m;
     }
@@ -297,5 +299,11 @@ public class Tank {
 
     public void setAngle(int angle) {
         this.angle = angle;
+    }
+
+    public void AIFire() {
+        if (this.ai.getAction() == AIActions.AIMING) {
+            this.fire();
+        }
     }
 }

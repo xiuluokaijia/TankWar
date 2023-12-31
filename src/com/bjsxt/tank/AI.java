@@ -8,18 +8,6 @@ public class AI implements Runnable {
     private AIActions action;
     private int rotationAngle;
     private final Random random = new Random();
-    private final Thread shottingThread = new Thread(() -> {
-        while (tank.isLive()) {
-            float interval = (this.random.nextInt(3000) + 1000) / client.getIntensity();
-            try {
-                Thread.sleep((int) interval);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            this.tank.fire();
-        }
-    });
-
     public AI(Tank tank) {
         this.action = generateAction();
         this.tank = tank;
@@ -59,8 +47,6 @@ public class AI implements Runnable {
             // 瞄准状态，在Tank.move中进行进一步实现
             // 停留状态与前进状态同样在Tank.move中实现
         }
-
-
     }
 }
 

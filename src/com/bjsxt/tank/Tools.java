@@ -12,7 +12,7 @@ public class Tools {
         double angle = Math.atan2(dy, dx);
         double degrees = Math.toDegrees(angle);
         degrees = (degrees + 360) % 360;
-        return (int) degrees;
+        return (int) degrees+90;
     }
 
     // 平方根快速算法

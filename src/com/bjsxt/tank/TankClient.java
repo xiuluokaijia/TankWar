@@ -7,6 +7,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -24,9 +25,9 @@ public class TankClient extends Frame {
     public static final int GAME_WIDTH = 3840;
     public static final int GAME_HEIGHT = 2160;
     public boolean isPaused = false;
-    public static final int ENEMY_DETECTION_RANGE = 10;
+    public static final int ENEMY_DETECTION_RANGE = 100;
     // 游戏强度
-    private float intensity = 1;
+    private float intensity = 5;
 
     public float getIntensity() {
         return this.intensity;
@@ -177,6 +178,18 @@ public class TankClient extends Frame {
 
         new Thread(new PaintThread()).start();
         new Thread(new Move()).start();
+        new Thread(()->{
+            Random r = new Random();
+            while(!isPaused){
+                float interval = (r.nextInt(3000) + 1000) / this.intensity;
+                try {
+                    Thread.sleep((int) interval);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                tanks.forEach(Tank::AIFire);
+            }
+        }).start();
     }
 
     public static void main(String[] args) {

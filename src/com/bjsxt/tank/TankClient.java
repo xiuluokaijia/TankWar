@@ -7,6 +7,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * 这个类的作用是坦克游戏的主窗口
@@ -23,16 +24,32 @@ public class TankClient extends Frame {
     public static final int GAME_WIDTH = 3840;
     public static final int GAME_HEIGHT = 2160;
     public boolean isPaused = false;
+    public static final int ENEMY_DETECTION_RANGE = 10;
+    // 游戏强度
+    private float intensity = 1;
+
+    public float getIntensity() {
+        return this.intensity;
+    }
+
+    public void addIntensity() {
+        this.intensity += 0.5F;
+    }
+
+    public void resetIntensity() {
+        this.intensity = 1;
+    }
+
     Tank myTank = new Tank(50, 50, true, Direction.STOP, this);
 
     Wall w1 = new Wall(100, 200, 20, 150, this), w2 = new Wall(300, 100, 300, 20, this);
 
-    List<Explode> explodes = new ArrayList<Explode>();
-    List<Missile> missiles = new ArrayList<Missile>();
-    List<Tank> tanks = new ArrayList<Tank>();
+    List<Explode> explodes = new CopyOnWriteArrayList<>();
+    List<Missile> missiles = new CopyOnWriteArrayList<>();
+    List<Tank> tanks = new CopyOnWriteArrayList<>();
     Image offScreenImage = null;
-    private static Toolkit tk = Toolkit.getDefaultToolkit();
-    static Image backGround = null;
+    private static final Toolkit tk = Toolkit.getDefaultToolkit();
+    static Image backGround;
     Blood b = new Blood();
 
     //搞个blood却没有使用，所以整个blood类都是不必要看的
@@ -40,14 +57,8 @@ public class TankClient extends Frame {
         @Override
         public void run() {
             while (!isPaused) {
-                for (Tank tank : tanks) {
-                    if (tank != null)
-                        tank.move();
-                }
-                for (Missile missile : missiles) {
-                    if (missile != null)
-                        missile.move();
-                }
+                tanks.forEach(Tank::move);
+                missiles.forEach(Missile::move);
                 myTank.move();
                 try {
                     Thread.sleep(10);

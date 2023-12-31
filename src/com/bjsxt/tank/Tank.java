@@ -8,19 +8,18 @@ import java.util.*;
 public class Tank {
     public static final int SPEED = 1, RSPEED = 3;
     private int angle = 0;
-
     private boolean live = true;
     private final BloodBar bb = new BloodBar();
 
     private int life = 100;
 
     TankClient tc;
-
+    private Thread aiThread = null;
+    private AI ai = null;
     private final boolean player;
     //表示是否是玩家操作的玩家坦克
-
-    private double x, y;
-    private double oldX, oldY;
+    private float x, y;
+    private float oldX, oldY;
 
     private static final Random r = new Random();
 
@@ -28,8 +27,6 @@ public class Tank {
 
     private Direction dir = Direction.STOP;
     private Direction ptDir = Direction.L;
-
-    private int step = r.nextInt(12) + 3;
 
     private static final Toolkit tk = Toolkit.getDefaultToolkit(); //初始化awt工具包
     // 加载tank图像，并等待加载完成
@@ -42,7 +39,7 @@ public class Tank {
     }
 
     public Image getTankImg() { //旋转图像
-        return Tools.rotateImg(tankImage, this.angle+90);
+        return Tools.rotateImg(tankImage, this.angle);
     }
     //键盘映射
 
@@ -55,6 +52,11 @@ public class Tank {
         this.oldX = x;
         this.oldY = y;
         this.player = player;
+        if (!player) {
+            this.ai = new AI(this);
+            this.aiThread = new Thread(this.ai);
+            aiThread.start();
+        }
     }
 
     public Tank(int x, int y, boolean player, Direction dir, TankClient tc) {
@@ -76,37 +78,50 @@ public class Tank {
     }
 
     public void move() {
-
         this.oldX = x;
         this.oldY = y;
-
-        Tools.rotateTo(this, dir);
-        if (this.dir != Direction.STOP) {
-            double radians = Math.toRadians(this.angle); // 将角度转换为弧度
-            x += SPEED * Math.cos(radians);
-            y += SPEED * Math.sin(radians);
+        if (this.player) {
+            Tools.rotateAction(this, dir); // 逐渐旋转至指定角度
+            if (this.dir != Direction.STOP) {
+                this.ptDir = this.dir;
+            }
+        } else {
+            // 处理ai索敌以及巡逻逻辑
+            AIActions act = this.ai.getAction();
+            Rectangle playerPos = tc.myTank.getRect();
+            int playerX = playerPos.x+WIDTH/2,playerY  = playerPos.y + HEIGHT/2;
+            float distance = Tools.getDistance(playerX, playerY, (int) this.x, (int) this.y);
+            if (distance <= TankClient.ENEMY_DETECTION_RANGE) {
+                this.ai.changeActions(AIActions.AIMING);
+            } else {
+                this.ai.changeActions(AIActions.HEADING);
+            }
+            switch (act) {
+                case STAY -> {
+                    this.dir = Direction.STOP;
+                }
+                case HEADING -> {
+                    this.dir = Direction.GO;
+                }
+                case ROTATING -> {
+                    this.dir = Direction.STOP;
+                    this.angle = Tools.rotateTo(this.angle, ai.getRotationAngle(), RSPEED);// 逐渐旋转至指定角度
+                }
+                case AIMING -> {
+                    this.angle = Tools.rotateTo(this.angle, Tools.calcAngle(playerX, playerY, this.x, this.y),RSPEED);
+                }
+            }
         }
-
+        // 处理位移：
         if (this.dir != Direction.STOP) {
-            this.ptDir = this.dir;
-        }
-
+            double radians = Math.toRadians(this.angle - 90); // 将角度转换为弧度
+            x += (float) (SPEED * Math.cos(radians));
+            y += (float) (SPEED * Math.sin(radians));
+        } // 由朝向速度计算x,y的移动距离
         if (x < 0) x = 0;
         if (y < 30) y = 30;
         if (x + Tank.WIDTH > TankClient.GAME_WIDTH) x = TankClient.GAME_WIDTH - Tank.WIDTH;
         if (y + Tank.HEIGHT > TankClient.GAME_HEIGHT) y = TankClient.GAME_HEIGHT - Tank.HEIGHT;
-
-        if (!player) {
-            Direction[] dirs = Direction.values();
-            if (step == 0) {
-                step = r.nextInt(12) + 3;
-                int rn = r.nextInt(dirs.length);
-                dir = dirs[rn];
-            }
-            step--;
-
-            if (r.nextInt(40) > 38) this.fire();
-        }
     }
 
     private void stay() {
@@ -144,14 +159,14 @@ public class Tank {
 
     void locateDirection() {
         if (bL && !bU && !bR && !bD) dir = Direction.L;
-        else if (bL && bU && !bR && !bD) dir = Direction.GO;
+        else if (bL && bU && !bR && !bD) dir = Direction.LU;
         else if (!bL && bU && !bR && !bD) dir = Direction.U;
-        else if (!bL && bU && bR && !bD) dir = Direction.GO;
+        else if (!bL && bU && bR && !bD) dir = Direction.RU;
         else if (!bL && !bU && bR && !bD) dir = Direction.R;
-        else if (!bL && !bU && bR && bD) dir = Direction.GO;
+        else if (!bL && !bU && bR && bD) dir = Direction.RD;
         else if (!bL && !bU && !bR && bD) dir = Direction.D;
-        else if (bL && !bU && !bR && bD) dir = Direction.GO;
-        else if (!bL && !bU && !bR && !bD) dir = Direction.STOP;
+        else if (bL && !bU && !bR && bD) dir = Direction.LD;
+        else dir = Direction.STOP;
     }
 
     public void keyReleased(KeyEvent e) {
@@ -188,11 +203,11 @@ public class Tank {
         return m;
     }
 
-    public Missile fire(int angle) {
+    private Missile fire(int angle) {
         if (!live) return null;
         int x = (int) (this.x + Tank.WIDTH / 2 - Missile.WIDTH / 2);
         int y = (int) (this.y + Tank.HEIGHT / 2 - Missile.HEIGHT / 2);
-        Missile m = new Missile(x, y,this.angle, player, this.tc);
+        Missile m = new Missile(x, y,angle, player, this.tc);
         tc.missiles.add(m);
         return m;
     }

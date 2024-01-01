@@ -90,16 +90,22 @@ public class Tank {
         }
         if (!player) {
             this.ai = new AI(this);
+
             this.aiThread = new Thread(this.ai);
             aiThread.start();
         }
     }
 
     public boolean waitForguarding(Tank mytank){
-        float distance=Tools.getDistanceofMytank(mytank,(int)this.x,(int)this.y);
-        if(distance<=this.tc.ENEMY_DETECTION_RANGE){
-            return true;
-        }
+
+
+            float distance=Tools.getDistanceofMytank(mytank,(int)this.x,(int)this.y);
+            if(distance<=this.tc.ENEMY_DETECTION_RANGE){
+                return true;
+            }
+
+
+
         return false;
     }
 
@@ -113,28 +119,40 @@ public class Tank {
             return;
         }            //如果！live且！good则从tanks数组中移除
 
-        if (player) bb.draw(g);
+
+
+         if(player) bb.draw(g);
         g.drawImage(this.getTankImg(), (int) x, (int) y, null);
     }
 
     public void move() {
+        int playerX = 0, playerY = 0;
         this.oldX = x;
         this.oldY = y;
         if (this.player) {
             Tools.rotateAction(this, dir); // 逐渐旋转至指定角度
         } else {
             // 处理ai索敌以及巡逻逻辑
-            Rectangle playerPos = tc.myTank.getRect();
-            int playerX = playerPos.x + playerPos.width / 2-15, playerY = playerPos.y + playerPos.height / 2-10;
-
-            float distance = Tools.getDistanceofMytank(this.tc.myTank,(int)this.x,(int)this.y);
-            //Tools.getDistance(playerX, playerY, (int) this.x, (int) this.y);
-
-            if (distance <= tc.ENEMY_DETECTION_RANGE) {
-                this.ai.changeActions(AIActions.AIMING);
-            } else {
+            if(!tc.myTank.isLive()){
                 if (this.ai.getAction() == AIActions.AIMING)
                     this.ai.changeActions(AIActions.HEADING);
+
+            }
+            else {
+                Rectangle playerPos = tc.myTank.getRect();
+                playerX = playerPos.x + playerPos.width / 2-15;
+                playerY = playerPos.y + playerPos.height / 2-10;
+
+                float distance = Tools.getDistanceofMytank(this.tc.myTank,(int)this.x,(int)this.y);
+                //Tools.getDistance(playerX, playerY, (int) this.x, (int) this.y);
+
+                if (distance <= tc.ENEMY_DETECTION_RANGE) {
+                    this.ai.changeActions(AIActions.AIMING);
+                    this.tc.warnings.add(new Warning(x,y,tc));          //进入警戒状态时添加警告标志
+                } else {
+                    if (this.ai.getAction() == AIActions.AIMING)
+                        this.ai.changeActions(AIActions.HEADING);
+                }
             }
             AIActions act = this.ai.getAction();
             switch (act) {
@@ -166,7 +184,7 @@ public class Tank {
         if (x < 0) x = 0;
         if (y < 30) y = 30;
         if (x + Tank.WIDTH > TankClient.GAME_WIDTH) x = TankClient.GAME_WIDTH - Tank.WIDTH;
-        if (y + Tank.HEIGHT > TankClient.GAME_HEIGHT) y = TankClient.GAME_HEIGHT - Tank.HEIGHT;
+        if (y + Tank.HEIGHT > TankClient.GAME_HEIGHT-10) y = TankClient.GAME_HEIGHT - Tank.HEIGHT;
     }
 
     private void stay() {
@@ -177,10 +195,13 @@ public class Tank {
     public void keyPressed(KeyEvent e) {
         int key = e.getKeyCode();
         switch (key) {
+
+
             case KeyEvent.VK_F2:
                 if (!this.live) {
                     this.live = true;
                     this.life = 100;
+                    tc.score=0;
                 }
                 break;
             case KeyEvent.VK_LEFT:
@@ -198,6 +219,7 @@ public class Tank {
             case KeyEvent.VK_DOWN:
                 bD = true;
                 break;
+
         }
         locateDirection();
     }
@@ -233,8 +255,10 @@ public class Tank {
                 bD = false;
                 break;
             case KeyEvent.VK_A:
+
                 superFire();
                 break;
+
         }
         locateDirection();
     }
@@ -316,6 +340,10 @@ public class Tank {
 
     private void superFire() {
         fire(this.angle);
+        if(tc.getIntensity()>3){
+            fire(this.angle+30);
+            fire(this.angle-30);
+        }
     }
 
     public int getLife() {
@@ -330,9 +358,9 @@ public class Tank {
         public void draw(Graphics g) {
             Color c = g.getColor();
             g.setColor(Color.RED);
-            g.drawRect((int) x, (int) (y - 10), WIDTH, 10);
+            g.drawRect((int) x, (int) (y - 10), WIDTH, 7);
             int w = WIDTH * life / 100;
-            g.fillRect((int) x, (int) (y - 10), w, 10);
+            g.fillRect((int) x, (int) (y - 10), w, 7);
             g.setColor(c);
         }
     }
@@ -357,10 +385,7 @@ public class Tank {
 
     public void AIFire() {
         if (this.ai.getAction() == AIActions.AIMING) {
-            this.fire();
+            this.superFire();
         }
     }
-
-
-
 }

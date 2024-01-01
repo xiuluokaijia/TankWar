@@ -4,7 +4,6 @@ import java.util.Random;
 
 public class AI implements Runnable {
     private Tank tank;
-    private TankClient client;
     private AIActions action;
     private int rotationAngle;
     private final Random random = new Random();

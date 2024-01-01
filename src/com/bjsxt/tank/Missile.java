@@ -78,8 +78,17 @@ public class Missile {
                 t.setLife(t.getLife() - 10);
                 if (t.getLife() <= 0) t.setLive(false);
             } else {
-                t.setLive(false);
-
+                if(tc.getIntensity()>=2){
+                    t.setLife(t.getLife() - 50);
+                    if (t.getLife() <= 0) t.setLive(false);
+                }
+                if(tc.getIntensity()>=3){
+                    t.setLife(t.getLife() - 34);
+                    if (t.getLife() <= 0) t.setLive(false);
+                }
+                else{
+                    t.setLive(false);
+                }
             }
 
             this.live = false;
@@ -104,6 +113,9 @@ public class Missile {
         if (this.live && this.getRect()
                              .intersects(w.getRect())) {
             this.live = false;
+            Explode e = new Explode((int) x, (int) y, tc);
+            //命中时创造explode对象并将其添加进tc内的数组当中
+            tc.explodes.add(e);
             return true;
         }
         return false;

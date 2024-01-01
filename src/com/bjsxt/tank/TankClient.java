@@ -21,11 +21,11 @@ public class TankClient extends Frame {
      */
     //public static final int GAME_WIDTH = 1600;
     //public static final int GAME_HEIGHT = 900;
-    public static final int GAME_WIDTH = 1540;
-    public static final int GAME_HEIGHT = 870;
+    public static final int GAME_WIDTH = 1024;
+    public static final int GAME_HEIGHT = 768;
     public boolean isPaused = false;
     private float intensity = 1;
-    public  float ENEMY_DETECTION_RANGE = 100*getIntensity();        //索敌半径也可以根据等级提升
+    public  float ENEMY_DETECTION_RANGE = 200*getIntensity();        //索敌半径也可以根据等级提升
 
     int score;          //得分，对应等级
     // 游戏强度
@@ -35,26 +35,20 @@ public class TankClient extends Frame {
         return this.intensity;
     }
 
-    public void addIntensity() {
-        this.intensity += 0.5F;
-    }
-
-    public void resetIntensity() {
-        this.intensity = 1;
-    }
-
     Tank myTank = new Tank(50, 50, true, Direction.STOP, this);
 
-    Wall w1 = new Wall(100, 200, 20, 150, this), w2 = new Wall(300, 100, 300, 20, this);
+    Wall w1 = new Wall(100, 200, 20, 150, this), w2 = new Wall(300, 500, 300, 20, this);
 
     List<Explode> explodes = new CopyOnWriteArrayList<>();
     List<Wall> walls = new CopyOnWriteArrayList<>();
     List<Missile> missiles = new CopyOnWriteArrayList<>();
     List<Tank> tanks = new CopyOnWriteArrayList<>();
+    List<Warning> warnings = new CopyOnWriteArrayList<>();
+    List<Warning> bloods = new CopyOnWriteArrayList<>();
     Image offScreenImage = null;
     private static final Toolkit tk = Toolkit.getDefaultToolkit();
     static Image backGround;
-    Blood b = new Blood();
+    //Blood b = new Blood();
 
     //搞个blood却没有使用，所以整个blood类都是不必要看的
     public class Move implements Runnable { // 刷新各渲染对象的位置，单独线程
@@ -70,6 +64,7 @@ public class TankClient extends Frame {
                 }
                 missiles.forEach(Missile::move);
                 myTank.move();
+                myTank.collidesWithWalls(walls);
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
@@ -87,15 +82,17 @@ public class TankClient extends Frame {
         // 保存原始字体
         Font originalFont = g.getFont();
         // 创建新的字体，例如，设置字体为宋体，大小为16
-        Font newFont = new Font("SimSun", Font.PLAIN, 40);
+        Font newFont = new Font("SimSun", Font.BOLD, 20);
         // 设置 Graphics 对象的字体为新字体
         g.setFont(newFont);
+
+        g.setColor(Color.white);
         // 绘制字符串
-        g.drawString("missiles count:" + missiles.size(), 10, 50);
-        g.drawString("explodes count:" + explodes.size(), 10, 80);
-        g.drawString("tanks    count:" + tanks.size(), 10, 110);
-        g.drawString("tanks     life:" + myTank.getLife(), 10, 140);
-        g.drawString("player's    score:" + score, 10, 170);
+        g.drawString("missiles count:" + missiles.size(), 10, 40);
+        g.drawString("explodes count:" + explodes.size(), 10, 60);
+        g.drawString("tanks    count:" + tanks.size(), 10, 80);
+        g.drawString("tanks     life:" + myTank.getLife(), 10, 100);
+        g.drawString("player's    score:" + score, 10, 120);
 
         // 恢复原始字体
         g.setFont(originalFont);
@@ -106,15 +103,14 @@ public class TankClient extends Frame {
             for (int i = 0; i < Integer.parseInt(PropertyMgr.getProperty("reProduceTankCount")); i++) {
                 tanks.add(new Tank(false,  this, Direction.L));
             }
-
         }               //控制坦克再次生成的部分，坦克的数量过少则会触发add添加新的坦克进入
                         //这个动作同样需要刷新验证数量上是否符合要求
+
+
         for (int i = 0; i < missiles.size(); i++) {
             Missile m = missiles.get(i);
-            if(m.hitTanks(tanks)){
-                score++;
-            };            //检测子弹是否击中敌方坦克
-
+                       //检测子弹是否击中敌方坦克
+            m.hitTanks(tanks);
             m.hitTank(myTank);            //检测己方坦克是否被击中
             m.hitWall(w1);
             m.hitWall(w2);
@@ -130,37 +126,33 @@ public class TankClient extends Frame {
 
         for (int i = 0; i < tanks.size(); i++) {
             Tank t = tanks.get(i);
-
+            if(!t.isLive()){
+                score++;
+                                //随机生成血包
+            }
             t.draw(g);
         }
-        switch (score) {
-            case 10:
-                addIntensity();
-                break;
-            case 20:
-                addIntensity();
-                break;
-            case 25:
-                addIntensity();
-                break;
-            case 30:
-                addIntensity();
-                break;
-            case 35:
-                addIntensity();
-                break;
-            default:
-                // 如果没有匹配的 case，执行这里的代码
+
+        for(int i=0;i<warnings.size();i++){
+            Warning wa=warnings.get(i);
+            wa.draw(g);
         }
+        this.intensity = score/10 + 1;
         myTank.draw(g);
         //myTank.eat(b);
         w1.draw(g);
         w2.draw(g);
         //b.draw(g);
     }
+    public static Image groupPhoto;
+
     static {
         backGround = tk.getImage(TankClient.class.getClassLoader()
-                .getResource("images/background_3.jpg"));
+                .getResource("images/160.jpg"));
+        groupPhoto =tk.getImage(TankClient.class.getClassLoader()
+                .getResource("images/groupphoto.jpg"));
+        Tools.waitForImageLoad(groupPhoto);
+
     }
     public void update(Graphics g) {
         //被线程循环调用
@@ -224,7 +216,7 @@ public class TankClient extends Frame {
         new Thread(()->{
             Random r = new Random();
             while(!isPaused){
-                float interval = (r.nextInt(3000) + 1000) / this.intensity;
+                float interval = (r.nextInt(3000) + 1000) / (this.intensity);
                 try {
                     Thread.sleep((int) interval);
                 } catch (InterruptedException e) {
@@ -355,14 +347,16 @@ class MybuttonInformation implements ActionListener {
         label0.setHorizontalAlignment(SwingConstants.CENTER); // 居中对齐
         panel.add(label0);
 
-        JLabel label00 = new JLabel("  小组口号：启动 ");
+        JLabel label00 = new JLabel("  小组口号：jvm启动 ");
         label00.setHorizontalAlignment(SwingConstants.CENTER); // 居中对齐
         panel.add(label00);
 
         // 添加小组照片
-        ImageIcon imageIcon = new ImageIcon("images/background.gif"); // 替换为实际图片路径
+        ImageIcon imageIcon = new ImageIcon(TankClient.groupPhoto); // 替换为实际图片路径
         JLabel imageLabel = new JLabel(imageIcon);
-        imageLabel.setHorizontalAlignment(SwingConstants.CENTER); // 图片居中显示
+       imageLabel.setHorizontalAlignment(JLabel.CENTER);
+       imageLabel.setVerticalAlignment(JLabel.CENTER);
+//        imageLabel.setHorizontalAlignment(SwingConstants.CENTER); // 图片居中显示
         panel.add(imageLabel);
 
         //添加第一个人的介绍

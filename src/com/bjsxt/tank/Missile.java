@@ -73,11 +73,13 @@ public class Missile {
     public boolean hitTank(Tank t) {
         if (this.live && this.getRect()
                              .intersects(t.getRect()) && t.isLive() && this.isPlayer != t.isPlayer()) {
+                                            //关闭了友伤
             if (t.isPlayer()) {
-                t.setLife(t.getLife() - 20);
+                t.setLife(t.getLife() - 10);
                 if (t.getLife() <= 0) t.setLive(false);
             } else {
                 t.setLive(false);
+
             }
 
             this.live = false;

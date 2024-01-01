@@ -29,6 +29,16 @@ public class Tools {
         return sqrt(dx * dx + dy * dy);
     }
 
+    public static  float getDistanceofMytank(Tank player,int x,int y){
+        Rectangle playerPos = player.getRect();
+        int playerX = playerPos.x + playerPos.width / 2-15, playerY = playerPos.y + playerPos.height / 2-10;
+        return Tools.getDistance(playerX, playerY, (int) x, (int) y);
+    }
+    //求玩家坦克距离
+
+
+
+
     // 等待图像加载
     public static void waitForImageLoad(Image img) {
         MediaTracker tracker = new MediaTracker(new Container());

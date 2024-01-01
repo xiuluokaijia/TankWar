@@ -4,9 +4,10 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
+import java.util.Random;
 
 public class Tank {
-    public static final int SPEED = 1, RSPEED = 3;
+    public static final int SPEED = 1, RSPEED = 2;
     private int angle = 0;
     private boolean live = true;
     private final BloodBar bb = new BloodBar();
@@ -43,8 +44,8 @@ public class Tank {
     }
     //键盘映射
 
-    public static final int WIDTH = 30;
-    public static final int HEIGHT = 30;
+    public static final int WIDTH = 40;
+    public static final int HEIGHT = 45;
 
     public Tank(int x, int y, boolean player) {
         this.x = x;
@@ -64,6 +65,45 @@ public class Tank {
         this.dir = dir;
         this.tc = tc;
     }
+
+    public Tank(boolean player,TankClient tc,Direction dir){
+        this.player=player;
+        this.tc=tc;
+        this.dir=dir;
+        Random random = new Random();
+        // 生成随机坐标
+        int randomX = random.nextInt(TankClient.GAME_WIDTH);
+        int randomY = random.nextInt(TankClient.GAME_HEIGHT);
+        this.x=randomX;
+        this.oldX=x;
+        this.y=randomY;
+        this.oldY=y;
+        //随机获得坐标
+        while (this.collidesWithWalls(tc.walls) || this.collidesWithTanks(tc.tanks)||this.waitForguarding(tc.myTank)) {
+            // 重新生成随机坐标
+            randomX = random.nextInt(tc.GAME_WIDTH);
+            randomY = random.nextInt(tc.GAME_HEIGHT);
+            this.x = randomX;
+            this.oldX=x;
+            this.y = randomY;
+            this.oldY=y;
+        }
+        if (!player) {
+            this.ai = new AI(this);
+            this.aiThread = new Thread(this.ai);
+            aiThread.start();
+        }
+    }
+
+    public boolean waitForguarding(Tank mytank){
+        float distance=Tools.getDistanceofMytank(mytank,(int)this.x,(int)this.y);
+        if(distance<=this.tc.ENEMY_DETECTION_RANGE){
+            return true;
+        }
+        return false;
+    }
+
+
 
     public void draw(Graphics g) {
         if (!live) {
@@ -85,9 +125,12 @@ public class Tank {
         } else {
             // 处理ai索敌以及巡逻逻辑
             Rectangle playerPos = tc.myTank.getRect();
-            int playerX = playerPos.x + playerPos.width / 2-10, playerY = playerPos.y + playerPos.height / 2-10;
-            float distance = Tools.getDistance(playerX, playerY, (int) this.x, (int) this.y);
-            if (distance <= TankClient.ENEMY_DETECTION_RANGE) {
+            int playerX = playerPos.x + playerPos.width / 2-15, playerY = playerPos.y + playerPos.height / 2-10;
+
+            float distance = Tools.getDistanceofMytank(this.tc.myTank,(int)this.x,(int)this.y);
+            //Tools.getDistance(playerX, playerY, (int) this.x, (int) this.y);
+
+            if (distance <= tc.ENEMY_DETECTION_RANGE) {
                 this.ai.changeActions(AIActions.AIMING);
             } else {
                 if (this.ai.getAction() == AIActions.AIMING)
@@ -95,7 +138,7 @@ public class Tank {
             }
             AIActions act = this.ai.getAction();
             switch (act) {
-                case STAY -> {
+                case STAY ->{
                     this.dir = Direction.STOP;
                 }
                 case HEADING -> {
@@ -200,7 +243,7 @@ public class Tank {
         if (!live) return null;
         int x = (int) (this.x + Tank.WIDTH / 2 - Missile.WIDTH / 2);
         int y = (int) (this.y + Tank.HEIGHT / 2 - Missile.HEIGHT / 2);
-        Missile m = new Missile(x + 10, y + 7, this.angle - 90, player, this.tc);
+        Missile m = new Missile(x + 6, y + 1, this.angle - 90, player, this.tc);
         tc.missiles.add(m);
         return m;
     }
@@ -209,7 +252,7 @@ public class Tank {
         if (!live) return null;
         int x = (int) (this.x + Tank.WIDTH / 2 - Missile.WIDTH / 2);
         int y = (int) (this.y + Tank.HEIGHT / 2 - Missile.HEIGHT / 2);
-        Missile m = new Missile(x + 10, y + 7, angle - 90, player, this.tc);
+        Missile m = new Missile(x + 6, y + 1, angle - 90, player, this.tc);
         tc.missiles.add(m);
         return m;
     }
@@ -244,6 +287,17 @@ public class Tank {
         }
         return false;
     }
+
+    public boolean  collidesWithWalls(java.util.List<Wall> walls){
+        for(int i=0;i<walls.size();i++){
+            Wall w=walls.get(i);
+            if(this.collidesWithWall(w)){
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     public boolean collidesWithTanks(java.util.List<Tank> tanks) {
         for (int i = 0; i < tanks.size(); i++) {
@@ -306,4 +360,7 @@ public class Tank {
             this.fire();
         }
     }
+
+
+
 }

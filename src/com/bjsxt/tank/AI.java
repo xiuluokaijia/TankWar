@@ -16,16 +16,16 @@ public class AI implements Runnable {
     public AIActions generateAction() {
         AIActions[] actions = AIActions.values();
         return actions[this.random.nextInt(actions.length - 1)];
-    }
+    }                           //随机给与一个状态
 
     public AIActions getAction() {
         return this.action;
     }
-
+                                //返回状态
     public void changeActions(AIActions action) {
         this.action = action;
     } // 在Tank.move中调用用于解除瞄准状态至其他状态
-
+                                //改变状态
     public int getRotationAngle() {
         return this.rotationAngle;
     }

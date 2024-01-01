@@ -90,7 +90,6 @@ public class Missile {
                     t.setLive(false);
                 }
             }
-
             this.live = false;
             Explode e = new Explode((int) x, (int) y, tc);
             //命中时创造explode对象并将其添加进tc内的数组当中

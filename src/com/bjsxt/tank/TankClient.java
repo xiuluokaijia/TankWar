@@ -44,7 +44,7 @@ public class TankClient extends Frame {
     List<Missile> missiles = new CopyOnWriteArrayList<>();
     List<Tank> tanks = new CopyOnWriteArrayList<>();
     List<Warning> warnings = new CopyOnWriteArrayList<>();
-    List<Warning> bloods = new CopyOnWriteArrayList<>();
+    List<Blood> bloods = new CopyOnWriteArrayList<>();
     Image offScreenImage = null;
     private static final Toolkit tk = Toolkit.getDefaultToolkit();
     static Image backGround;
@@ -127,8 +127,16 @@ public class TankClient extends Frame {
         for (int i = 0; i < tanks.size(); i++) {
             Tank t = tanks.get(i);
             if(!t.isLive()){
+
+                Random random = new Random();
+                // 生成0到1之间的随机数
+                double probability = random.nextDouble();
+                // 检查概率是否小于0.5，即50%的概率
+                if (probability < 0.5) {
+                    Blood t1 = t.giveBlood();
+                    bloods.add(t1);                        //随机生成血
+                }
                 score++;
-                                //随机生成血包
             }
             t.draw(g);
         }
@@ -137,8 +145,17 @@ public class TankClient extends Frame {
             Warning wa=warnings.get(i);
             wa.draw(g);
         }
+
+        for (int i = 0; i < bloods.size(); i++) {
+            Blood b = bloods.get(i);
+            b.beEat(myTank);
+
+            b.draw(g);
+        }
+
         this.intensity = score/10 + 1;
         myTank.draw(g);
+
         //myTank.eat(b);
         w1.draw(g);
         w2.draw(g);
@@ -324,6 +341,116 @@ class MybuttonStart implements ActionListener {
 
 }
 class MybuttonInformation implements ActionListener {
+    public void actionPerformed(ActionEvent e) {
+        //如果点击开始按钮就会进入信息展示
+        Frame frame = new Frame("小组信息展示");
+        frame.setVisible(true);  // 设置窗口可见
+        frame.setBounds(300, 300, 500, 500);  // 设置窗口位置和大小
+        frame.setBackground(new Color(3, 47, 222));  // 设置窗口背景颜色
+        frame.setResizable(true);  // 允许窗口大小可调整
+        frame.setLayout(null);  // 关闭布局管理器
+
+        // 创建 Panel（面板）
+        Panel panel = new Panel(); // 使用 FlowLayout，垂直排列
+        panel.setBounds(50, 50, 400, 400);  // 设置面板位置和大小
+        panel.setBackground(new Color(122, 217, 207));  // 设置面板背景颜色
+        panel.setLayout(new GridLayout(9, 1));//文字信息是竖直排列
+
+        //添加小组信息
+        JLabel label0 = new JLabel("小组名称：原神");
+        label0.setHorizontalAlignment(SwingConstants.CENTER); // 居中对齐
+        panel.add(label0);
+
+        JLabel label00 = new JLabel("  小组口号：jvm启动 ");
+        label00.setHorizontalAlignment(SwingConstants.CENTER); // 居中对齐
+        panel.add(label00);
+        // 创建“图片展示”按钮
+        JButton photoButton = new JButton("查看照片");
+        photoButton.setBounds(50, 250, 280, 120);  // 设置按钮位置和大小
+        panel.add(photoButton);  // 将按钮添加到面板
+
+        //开始添加监听事件
+        MybuttonPhoto mybuttonPhoto=new MybuttonPhoto();
+        photoButton.addActionListener(mybuttonPhoto);
+        //如果你点击开始按钮就可以开始展示小组照片
+
+
+
+        //添加第一个人的介绍
+        JLabel label1 = new JLabel("左：张宪冲 ");
+        label1.setHorizontalAlignment(SwingConstants.CENTER); // 居中对齐
+        panel.add(label1);
+
+        JLabel label2 = new JLabel("学号：2225060781 ");
+        label2.setHorizontalAlignment(SwingConstants.CENTER); // 居中对齐
+        panel.add(label2);
+        //添加第二个人的介绍
+        JLabel label3 = new JLabel("中：王一衡 ");
+        label3.setHorizontalAlignment(SwingConstants.CENTER); // 居中对齐
+        panel.add(label3);
+
+        JLabel label4 = new JLabel("学号：2225060762 ");
+        label4.setHorizontalAlignment(SwingConstants.CENTER); // 居中对齐
+        panel.add(label4);
+
+        //添加第三个人的介绍
+        JLabel label5 = new JLabel("右：李卓兴");
+        label5.setHorizontalAlignment(SwingConstants.CENTER); // 居中对齐
+        panel.add(label5);
+
+        JLabel label6 = new JLabel("学号：2225060841 ");
+        label6.setHorizontalAlignment(SwingConstants.CENTER); // 居中对齐
+        panel.add(label6);
+        frame.add(panel);
+        //设置一个窗口的关闭
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                // 点击关闭时只关闭当前窗口
+                frame.dispose();
+            }
+        });
+    }
+
+}
+
+class MybuttonPhoto implements ActionListener {
+    public void actionPerformed(ActionEvent e) {
+        //如果点击开始按钮就会进入信息展示
+        Frame frame = new Frame("小组信息展示");
+        frame.setVisible(true);  // 设置窗口可见
+        frame.setBounds(300, 300, 500, 500);  // 设置窗口位置和大小
+        frame.setBackground(new Color(3, 47, 222));  // 设置窗口背景颜色
+        frame.setResizable(true);  // 允许窗口大小可调整
+        frame.setLayout(null);  // 关闭布局管理器
+
+        // 创建 Panel（面板）
+        Panel panel = new Panel(); // 使用 FlowLayout，垂直排列
+        panel.setBounds(50, 50, 400, 400);  // 设置面板位置和大小
+        panel.setBackground(new Color(122, 217, 207));  // 设置面板背景颜色
+        panel.setLayout(new GridLayout(1, 1));//文字信息是竖直排列
+
+//添加图片
+
+        ImageIcon imageIcon = new ImageIcon(TankClient.groupPhoto); // 替换为实际图片路径
+        JLabel imageLabel = new JLabel(imageIcon);
+        imageLabel.setHorizontalAlignment(JLabel.CENTER);
+        imageLabel.setVerticalAlignment(JLabel.CENTER);
+//        imageLabel.setHorizontalAlignment(SwingConstants.CENTER); // 图片居中显示
+        panel.add(imageLabel);
+        frame.add(panel);
+        //设置一个窗口的关闭
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                // 点击关闭时只关闭当前窗口
+                frame.dispose();
+            }
+        });
+    }
+
+}
+/*class MybuttonInformation implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         //如果点击开始按钮就会进入信息展示
         Frame frame = new Frame("小组信息展示");

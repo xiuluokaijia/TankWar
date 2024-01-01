@@ -181,10 +181,10 @@ public class Tank {
             x += (float) (SPEED * Math.cos(radians));
             y += (float) (SPEED * Math.sin(radians));
         } // 由朝向速度计算x,y的移动距离
-        if (x < 0) x = 0;
+        if (x < 0) x = 0 ;
         if (y < 30) y = 30;
         if (x + Tank.WIDTH > TankClient.GAME_WIDTH) x = TankClient.GAME_WIDTH - Tank.WIDTH;
-        if (y + Tank.HEIGHT > TankClient.GAME_HEIGHT-10) y = TankClient.GAME_HEIGHT - Tank.HEIGHT;
+        if (y + Tank.HEIGHT > TankClient.GAME_HEIGHT-10) y = TankClient.GAME_HEIGHT - Tank.HEIGHT-15;
     }
 
     private void stay() {
@@ -365,15 +365,7 @@ public class Tank {
         }
     }
 
-    public boolean eat(Blood b) {
-        if (this.live && b.isLive() && this.getRect()
-                                           .intersects(b.getRect())) {
-            this.life = 100;
-            b.setLive(false);
-            return true;
-        }
-        return false;
-    }
+
 
     public int getAngle() {
         return this.angle;
@@ -383,9 +375,19 @@ public class Tank {
         this.angle = angle;
     }
 
+
+
     public void AIFire() {
         if (this.ai.getAction() == AIActions.AIMING) {
             this.superFire();
         }
     }
+
+    public Blood giveBlood(){
+
+            Blood b=new Blood((int)x,(int)y,tc);
+
+            return b;
+    }
+
 }
